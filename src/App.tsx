@@ -3,35 +3,20 @@ import {
   Plane, 
   MapPin, 
   Clock, 
-  ChevronRight, 
-  Calendar, 
-  CheckCircle2, 
-  Circle,
-  ExternalLink,
-  Thermometer,
-  CloudSun,
-  Package,
-  ChevronDown,
   Globe,
   Navigation2,
-  AlertCircle,
-  CreditCard,
-  Building2,
   FileText,
   Utensils,
-  Smartphone,
-  Wallet,
-  Calculator,
-  Stethoscope,
   Info,
   Menu,
   X,
-  Wind,
-  Droplets,
-  Sunrise,
   ArrowRightLeft,
   RefreshCw,
-  Coins
+  Coins,
+  Package,
+  CheckCircle2,
+  CloudSun,
+  Thermometer
 } from 'lucide-react';
 import { motion, AnimatePresence, LayoutGroup } from 'framer-motion';
 import { MapContainer, TileLayer, Polyline, Marker, Popup, useMap } from 'react-leaflet';
@@ -56,9 +41,6 @@ const createCustomIcon = (color: string = '#18181b') => {
     popupAnchor: [0, -28]
   });
 };
-
-const MAP_ICON = createCustomIcon('#18181b');
-const MAP_ICON_ACTIVE = createCustomIcon('#3b82f6');
 
 // --- Types ---
 interface FlightLeg {
@@ -147,14 +129,6 @@ const INITIAL_CHECKLIST = [
   { id: 'm2', text: 'Whey Protein (5kg Tub)', category: 'Health', checked: false },
   { id: 'm3', text: 'Basic First Aid Kit', category: 'Health', checked: false },
 ];
-
-const LOAN_DATA = {
-  bank: 'HDFC Credila',
-  id: 'A2509185292',
-  amount: '₹50,00,000',
-  contact: 'Parth Barot',
-  status: 'Active',
-};
 
 // --- Framer Motion Springs ---
 const eliteSpring = { type: 'spring', stiffness: 300, damping: 30 };
@@ -281,22 +255,24 @@ const ForexWidget = () => {
   const [lastUpdate, setLastUpdate] = useState('');
   
   useEffect(() => {
+    let isMounted = true;
     const fetchRates = async () => {
       setLoading(true);
       try {
         const res = await fetch(`https://open.er-api.com/v6/latest/${base}`);
         const data = await res.json();
-        if (data.rates) {
+        if (isMounted && data && data.rates) {
           setRates(data.rates);
           setLastUpdate(new Date().toLocaleTimeString());
         }
       } catch (err) {
         console.error('Failed to fetch rates', err);
       } finally {
-        setLoading(false);
+        if (isMounted) setLoading(false);
       }
     };
     fetchRates();
+    return () => { isMounted = false; };
   }, [base]);
 
   const currencies: { code: Currency; symbol: string; label: string }[] = [
@@ -312,6 +288,7 @@ const ForexWidget = () => {
         {currencies.map((c) => (
           <button
             key={c.code}
+            type="button"
             onClick={() => setBase(c.code)}
             className={`flex-1 py-2 text-[10px] font-bold rounded-xl transition-all duration-300 ${base === c.code ? 'bg-white shadow-sm text-zinc-900' : 'text-zinc-400 hover:text-zinc-600'}`}
           >
@@ -367,7 +344,9 @@ const ForexWidget = () => {
 const MapController = ({ bounds }: { bounds: L.LatLngBoundsExpression }) => {
   const map = useMap();
   useEffect(() => {
-    map.fitBounds(bounds, { padding: [100, 100] });
+    if (map && bounds) {
+      map.fitBounds(bounds, { padding: [100, 100] });
+    }
   }, [bounds, map]);
   return null;
 };
@@ -378,27 +357,28 @@ export default function App() {
   const [checklist, setChecklist] = useState(INITIAL_CHECKLIST);
   const [activeTab, setActiveTab] = useState<'logistics' | 'health'>('logistics');
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [vh, setVH] = useState(0);
 
   const toggleItem = (id: string) => {
     setChecklist(checklist.map(item => item.id === id ? { ...item, checked: !item.checked } : item));
   };
 
-  const polyline: [number, number][] = CITIES.slice(0, 4).map(c => [c.lat, c.lon]);
+  const polyline: [number, number][] = useMemo(() => CITIES.slice(0, 4).map(c => [c.lat, c.lon]), []);
   const bounds = useMemo(() => L.latLngBounds(polyline), [polyline]);
 
-  // iOS Viewport Height Fix
+  // Use state for VH to ensure re-render and avoid SSR issues if any
   useEffect(() => {
-    const setVH = () => {
-      let vh = window.innerHeight * 0.01;
-      document.documentElement.style.setProperty('--vh', `${vh}px`);
-    };
-    setVH();
-    window.addEventListener('resize', setVH);
-    return () => window.removeEventListener('resize', setVH);
+    const handleResize = () => setVH(window.innerHeight * 0.01);
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  const MAP_ICON = useMemo(() => createCustomIcon('#18181b'), []);
+  const MAP_ICON_ACTIVE = useMemo(() => createCustomIcon('#3b82f6'), []);
+
   return (
-    <div className="flex w-screen bg-[#f8fafc] overflow-hidden font-sans text-zinc-900 selection:bg-blue-500 selection:text-white" style={{ height: 'calc(var(--vh, 1vh) * 100)' }}>
+    <div className="flex w-screen bg-[#f8fafc] overflow-hidden font-sans text-zinc-900 selection:bg-blue-500 selection:text-white" style={{ height: vh ? `${vh * 100}px` : '100vh' }}>
       
       {/* Dynamic Background */}
       <div className="fixed inset-0 pointer-events-none">
@@ -424,7 +404,7 @@ export default function App() {
             animate={{ x: 0, opacity: 1 }}
             exit={{ x: -450, opacity: 0 }}
             transition={layoutTransition}
-            className="w-[450px] max-w-[85vw] h-full relative z-50 flex flex-col border-r border-zinc-200/50 bg-white/20 backdrop-blur-xl"
+            className="w-[450px] max-w-full h-full relative z-50 flex flex-col border-r border-zinc-200/50 bg-white/20 backdrop-blur-xl"
           >
             <div className="flex-1 overflow-y-auto custom-scrollbar p-8 pt-24 space-y-10">
               
@@ -473,6 +453,7 @@ export default function App() {
                     {(['logistics', 'health'] as const).map((tab) => (
                       <button 
                         key={tab}
+                        type="button"
                         onClick={() => setActiveTab(tab)}
                         className={`px-4 py-1.5 text-[9px] font-bold rounded-lg transition-all ${activeTab === tab ? 'bg-white shadow-sm text-zinc-900' : 'text-zinc-400'}`}
                       >
@@ -564,7 +545,8 @@ export default function App() {
       {/* Main Map Viewport */}
       <main className={`h-full relative overflow-hidden transition-all duration-700 ease-[0.16, 1, 0.3, 1] ${sidebarOpen ? 'w-[calc(100%-450px)] hidden sm:block' : 'w-full block'}`}>
         <MapContainer 
-          bounds={bounds} 
+          center={[12.9716, 77.5946]}
+          zoom={5}
           zoomControl={false}
           className="h-full w-full"
           tap={false}
