@@ -18,6 +18,18 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { MapContainer, TileLayer, Polyline, Marker, Popup, useMap } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import L from 'leaflet';
+
+// Fix for Leaflet marker icons in React
+// @ts-ignore
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+});
 
 // --- Types ---
 interface FlightLeg {
@@ -169,6 +181,56 @@ const FlightLegRow = ({ leg, isLast }: { leg: FlightLeg, isLast: boolean }) => {
   );
 };
 
+// Map auto-fitting logic
+const ChangeView = ({ bounds }: { bounds: L.LatLngBoundsExpression }) => {
+  const map = useMap();
+  useEffect(() => {
+    map.fitBounds(bounds, { padding: [50, 50] });
+  }, [bounds, map]);
+  return null;
+};
+
+const SatelliteMap = () => {
+  const polyline: [number, number][] = CITIES.map(c => [c.lat, c.lon]);
+  const bounds = L.latLngBounds(polyline);
+
+  return (
+    <div className="h-[400px] w-full rounded-2xl overflow-hidden border border-zinc-800 shadow-2xl relative">
+      <MapContainer 
+        bounds={bounds} 
+        scrollWheelZoom={false} 
+        style={{ height: '100%', width: '100%', background: '#09090b' }}
+        zoomControl={false}
+      >
+        <TileLayer
+          attribution='&copy; <a href="https://www.esri.com/">Esri</a>'
+          url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+        />
+        <Polyline 
+          positions={polyline} 
+          color="#10b981" 
+          weight={3} 
+          opacity={0.6} 
+          dashArray="10, 10"
+        />
+        {CITIES.map((city) => (
+          <Marker key={city.code} position={[city.lat, city.lon]}>
+            <Popup>
+              <div className="text-zinc-900 font-bold">{city.name} ({city.code})</div>
+            </Popup>
+          </Marker>
+        ))}
+        <ChangeView bounds={bounds} />
+      </MapContainer>
+      <div className="absolute top-4 left-4 z-[1000] bg-zinc-900/80 backdrop-blur-md border border-zinc-800 px-3 py-1.5 rounded-lg">
+        <p className="text-[10px] font-black text-emerald-400 uppercase tracking-widest flex items-center gap-2">
+          <Navigation2 className="h-3 w-3 fill-current" /> Live Route Tracking
+        </p>
+      </div>
+    </div>
+  );
+};
+
 export default function App() {
   const [checklist, setChecklist] = useState(() => {
     const saved = localStorage.getItem('travel_checklist');
@@ -271,6 +333,15 @@ export default function App() {
                 <FlightLegRow leg={FLIGHT_DATA[2]} isLast={true} />
               </div>
             </Card>
+          </section>
+
+          {/* Interactive Map Section */}
+          <section>
+            <h2 className="text-sm font-black text-zinc-100 uppercase tracking-widest mb-6 px-2 flex items-center gap-2">
+              <Navigation2 className="h-4 w-4 text-emerald-500" />
+              Strategic Overlay
+            </h2>
+            <SatelliteMap />
           </section>
 
           {/* Logistics Section */}
