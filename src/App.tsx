@@ -42,12 +42,12 @@ import L from 'leaflet';
 
 // Custom SVG Pin to fix accuracy issues (anchored exactly at bottom center)
 const createCustomIcon = (color: string = '#18181b') => {
-  const svg = \`
+  const svg = `
     <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M16 28.5C16 28.5 24 20.5 24 14C24 9.58172 20.4183 6 16 6C11.5817 6 8 9.58172 8 14C8 20.5 16 28.5 16 28.5Z" fill="\${color}" stroke="white" stroke-width="2"/>
+      <path d="M16 28.5C16 28.5 24 20.5 24 14C24 9.58172 20.4183 6 16 6C11.5817 6 8 9.58172 8 14C8 20.5 16 28.5 16 28.5Z" fill="${color}" stroke="white" stroke-width="2"/>
       <circle cx="16" cy="14" r="3" fill="white"/>
     </svg>
-  \`;
+  `;
   return L.divIcon({
     html: svg,
     className: '',
@@ -78,7 +78,7 @@ interface FlightLeg {
   status: 'Scheduled' | 'On Time' | 'Landed';
 }
 
-type Currency = 'INR' | 'SGD' | 'AED';
+type Currency = 'INR' | 'SGD' | 'AED' | 'USD';
 
 // --- Constants & Data ---
 const FLIGHT_DATA: FlightLeg[] = [
@@ -177,7 +177,7 @@ const GlassContainer = ({ children, className = "", delay = 0 }: { children: Rea
     initial={{ opacity: 0, y: 15 }}
     animate={{ opacity: 1, y: 0 }}
     transition={{ duration: 0.8, delay, ease: [0.16, 1, 0.3, 1] }}
-    className={\`relative group overflow-hidden backdrop-blur-[32px] bg-white/40 border border-white/40 rounded-[28px] shadow-[0_24px_48px_-12px_rgba(0,0,0,0.08)] p-6 transition-all duration-700 hover:shadow-[0_40px_70px_-15px_rgba(0,0,0,0.12)] \${className}\`}
+    className={`relative group overflow-hidden backdrop-blur-[32px] bg-white/40 border border-white/40 rounded-[28px] shadow-[0_24px_48px_-12px_rgba(0,0,0,0.08)] p-6 transition-all duration-700 hover:shadow-[0_40px_70px_-15px_rgba(0,0,0,0.12)] ${className}`}
   >
     <div className="absolute inset-0 rounded-[28px] border-[1px] border-black/[0.02] pointer-events-none" />
     <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-transparent pointer-events-none" />
@@ -276,19 +276,40 @@ const WeatherWidget = ({ city }: { city: typeof CITIES[0] }) => (
 const ForexWidget = () => {
   const [val, setVal] = useState('1000');
   const [base, setBase] = useState<Currency>('INR');
-  
-  // Normalized to 1 unit of base
-  const exchangeRates = {
-    INR: { SGD: 0.016, AED: 0.044, INR: 1 },
-    SGD: { INR: 62.50, AED: 2.75, SGD: 1 },
-    AED: { INR: 22.72, SGD: 0.36, AED: 1 }
-  };
+  const [rates, setRates] = useState<Record<string, number>>({});
+  const [loading, setLoading] = useState(true);
+  const [lastUpdate, setLastUpdate] = useState<string>('');
 
   const currencies: { code: Currency; symbol: string; label: string }[] = [
     { code: 'INR', symbol: '₹', label: 'Rupee' },
     { code: 'SGD', symbol: 'S$', label: 'Singapore' },
-    { code: 'AED', symbol: 'د.إ', label: 'Dubai' }
+    { code: 'AED', symbol: 'د.إ', label: 'Dubai' },
+    { code: 'USD', symbol: '$', label: 'US Dollar' }
   ];
+
+  useEffect(() => {
+    const fetchRates = async () => {
+      setLoading(true);
+      try {
+        const res = await fetch(\`https://open.er-api.com/v6/latest/\${base}\`);
+        const data = await res.json();
+        if (data.rates) {
+          setRates(data.rates);
+          setLastUpdate(new Date().toLocaleTimeString());
+        }
+      } catch (err) {
+        console.error('Failed to fetch rates', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchRates();
+  }, [base]);
+
+  const convert = (amount: number, target: string) => {
+    if (!rates[target]) return 0;
+    return amount * rates[target];
+  };
 
   return (
     <div className="space-y-6">
@@ -297,7 +318,7 @@ const ForexWidget = () => {
           <button
             key={c.code}
             onClick={() => setBase(c.code)}
-            className={\`flex-1 py-2 text-[10px] font-bold rounded-xl transition-all duration-300 \${base === c.code ? 'bg-white shadow-sm text-zinc-900' : 'text-zinc-400 hover:text-zinc-600'}\`}
+            className={`flex-1 py-2 text-[10px] font-bold rounded-xl transition-all duration-300 ${base === c.code ? 'bg-white shadow-sm text-zinc-900' : 'text-zinc-400 hover:text-zinc-600'}`}
           >
             {c.code}
           </button>
@@ -305,7 +326,12 @@ const ForexWidget = () => {
       </div>
 
       <div className="relative">
-        <label className="block text-[9px] font-bold text-zinc-400 uppercase tracking-widest mb-2.5 ml-1">Input Amount</label>
+        <div className="flex justify-between items-end mb-2.5 ml-1">
+          <label className="block text-[9px] font-bold text-zinc-400 uppercase tracking-widest">Input Amount</label>
+          {lastUpdate && !loading && (
+             <span className="text-[8px] text-zinc-300 font-bold uppercase tracking-widest">Updated {lastUpdate}</span>
+          )}
+        </div>
         <div className="relative">
           <input 
             type="number" 
@@ -319,7 +345,7 @@ const ForexWidget = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-3">
+      <div className="grid grid-cols-1 gap-3 min-h-[180px]">
         {currencies.filter(c => c.code !== base).map((c) => (
           <motion.div 
             layout
@@ -328,12 +354,15 @@ const ForexWidget = () => {
           >
             <div>
               <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest mb-0.5">{c.label} ({c.code})</p>
-              <p className="text-xl font-medium text-zinc-900 tabular-nums font-mono tracking-tighter">
-                {c.symbol} {(Number(val) * exchangeRates[base][c.code]).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}
-              </p>
+              <div className="flex items-center gap-1.5">
+                <span className="text-xl font-medium text-zinc-900 tabular-nums font-mono tracking-tighter">
+                  {loading ? '...' : convert(Number(val), c.code).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+                </span>
+                <span className="text-[10px] font-bold text-zinc-300 uppercase font-mono">{c.code}</span>
+              </div>
             </div>
-            <div className="h-10 w-10 rounded-full bg-blue-50 flex items-center justify-center">
-              <RefreshCw className="h-4 w-4 text-blue-500 opacity-30" />
+            <div className="h-10 w-10 rounded-full bg-blue-50/50 flex items-center justify-center">
+               <RefreshCw className={`h-4 w-4 text-blue-500/40 ${loading ? 'animate-spin' : ''}`} />
             </div>
           </motion.div>
         ))}
@@ -441,7 +470,7 @@ export default function App() {
                       <button 
                         key={tab}
                         onClick={() => setActiveTab(tab)}
-                        className={\`px-4 py-1.5 text-[9px] font-bold rounded-lg transition-all \${activeTab === tab ? 'bg-white shadow-sm text-zinc-900' : 'text-zinc-400'}\`}
+                        className={`px-4 py-1.5 text-[9px] font-bold rounded-lg transition-all ${activeTab === tab ? 'bg-white shadow-sm text-zinc-900' : 'text-zinc-400'}`}
                       >
                         {tab.toUpperCase()}
                       </button>
@@ -458,11 +487,11 @@ export default function App() {
                         onClick={() => toggleItem(item.id)}
                         className="flex items-start gap-4 cursor-pointer group"
                       >
-                        <div className={\`mt-0.5 h-5 w-5 rounded-lg border-2 transition-all duration-300 flex items-center justify-center \${item.checked ? 'bg-zinc-900 border-zinc-900' : 'bg-white/50 border-zinc-200 group-hover:border-zinc-400'}\`}>
+                        <div className={`mt-0.5 h-5 w-5 rounded-lg border-2 transition-all duration-300 flex items-center justify-center ${item.checked ? 'bg-zinc-900 border-zinc-900' : 'bg-white/50 border-zinc-200 group-hover:border-zinc-400'}`}>
                           {item.checked && <CheckCircle2 className="h-3.5 w-3.5 text-white" />}
                         </div>
                         <div className="flex-1">
-                          <p className={\`text-sm font-medium transition-all \${item.checked ? 'text-zinc-400 line-through' : 'text-zinc-800'}\`}>
+                          <p className={`text-sm font-medium transition-all ${item.checked ? 'text-zinc-400 line-through' : 'text-zinc-800'}`}>
                             {item.text}
                           </p>
                           {item.note && <p className="text-[10px] text-zinc-400 mt-1 font-medium tracking-wide uppercase">{item.note}</p>}
@@ -529,7 +558,7 @@ export default function App() {
       </AnimatePresence>
 
       {/* Main Map Viewport */}
-      <main className={\`h-full relative overflow-hidden transition-all duration-700 ease-[0.16, 1, 0.3, 1] \${sidebarOpen ? 'w-[calc(100%-450px)]' : 'w-full'}\`}>
+      <main className={`h-full relative overflow-hidden transition-all duration-700 ease-[0.16, 1, 0.3, 1] ${sidebarOpen ? 'w-[calc(100%-450px)]' : 'w-full'}`}>
         <MapContainer 
           bounds={bounds} 
           zoomControl={false}
@@ -620,7 +649,7 @@ export default function App() {
         </div>
       </main>
 
-      <style>{\`
+      <style>{`
         @import url('https://rsms.me/inter/inter.css');
         
         :root { font-family: 'Inter', sans-serif; }
@@ -652,7 +681,7 @@ export default function App() {
           font-family: 'JetBrains Mono', 'Fira Code', monospace;
           letter-spacing: -0.02em;
         }
-      \`}</style>
+      `}</style>
 
     </div>
   );
