@@ -11,18 +11,20 @@ import {
   Thermometer,
   CloudSun,
   Package,
-  Stethoscope,
   ChevronDown,
   Globe,
   Navigation2,
-  AlertCircle
+  AlertCircle,
+  CreditCard,
+  Building2,
+  FileText
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MapContainer, TileLayer, Polyline, Marker, Popup, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 
-// Fix for Leaflet marker icons in React
+// Fix for Leaflet marker icons
 // @ts-ignore
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -47,11 +49,6 @@ interface FlightLeg {
   status: 'Scheduled' | 'On Time' | 'Landed';
 }
 
-interface WeatherData {
-  temp: number;
-  code: number;
-}
-
 // --- Data ---
 const FLIGHT_DATA: FlightLeg[] = [
   { id: '1', airline: 'Akasa Air', flightNo: 'QP 1102', from: 'AMD', to: 'BOM', depDate: 'Jun 17', depTime: '07:55', arrTime: '09:20', terminal: 'T1', gate: 'B4', pnr: '8H49TF', status: 'Scheduled' },
@@ -66,123 +63,55 @@ const CITIES = [
   { name: 'Singapore', code: 'SIN', lat: 1.3521, lon: 103.8198 },
 ];
 
-const INITIAL_CHECKLIST = [
-  { id: 'm1', text: '4x Hydrasun Sunscreen', category: 'Medical', checked: false },
-  { id: 'm2', text: '3x Nevlon Anti-Itch Cream', category: 'Medical', checked: false },
-  { id: 'm3', text: '3x Ketnext AF Lotion', category: 'Medical', checked: false },
-  { id: 'm4', text: '3x Biofwash Shampoo', category: 'Medical', checked: false },
-  { id: 'm5', text: '3x Selenext Wash', category: 'Medical', checked: false },
-  { id: 'm6', text: '3x Xylite Cream', category: 'Medical', checked: false },
-  { id: 'm7', text: '3x Nioclean AD Gel', category: 'Medical', checked: false },
-  { id: 'm8', text: '2x Cutishine Face Wash', category: 'Medical', checked: false },
-  { id: 'm9', text: '2x Momecort-F Cream', category: 'Medical', checked: false },
-  { id: 'm10', text: '1x Cosmoq Serum', category: 'Medical', checked: false },
+const CHECKLIST = [
   { id: 'l1', text: 'Grab App Setup (S$25-35)', category: 'Logistics', checked: false },
   { id: 'l2', text: 'Submit SG Arrival Card (SGAC)', category: 'Logistics', checked: false },
   { id: 'l3', text: 'Academic Docs Checklist', category: 'Logistics', checked: false },
   { id: 'l4', text: 'Student Pass Formalities', category: 'Logistics', checked: false },
 ];
 
-// --- Components ---
+const LOAN_DATA = {
+  bank: 'HDFC Bank',
+  amount: '₹45,00,000',
+  status: 'Disbursed',
+  emiDate: '5th of every month',
+  repaymentPeriod: '15 Years'
+};
 
-const Card = ({ children, className = "" }: { children: React.ReactNode, className?: string }) => (
-  <div className={`bg-zinc-900/50 border border-zinc-800/50 rounded-2xl shadow-lg overflow-hidden ${className}`}>
+// --- UI Components ---
+
+const SectionTitle = ({ children, icon: Icon }: { children: React.ReactNode, icon: any }) => (
+  <h2 className="text-[11px] font-bold text-zinc-400 uppercase tracking-widest flex items-center gap-2 mb-4 px-1">
+    <Icon className="h-3.5 w-3.5 text-zinc-300" />
+    {children}
+  </h2>
+);
+
+const SidebarCard = ({ children, className = "" }: { children: React.ReactNode, className?: string }) => (
+  <div className={`bg-white border border-zinc-200 rounded-xl shadow-sm p-4 ${className}`}>
     {children}
   </div>
 );
 
-const WeatherBadge = ({ city, lat, lon }: { city: string, lat: number, lon: number }) => {
-  const [data, setData] = useState<WeatherData | null>(null);
-
-  useEffect(() => {
-    fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code`)
-      .then(res => res.json())
-      .then(json => setData({ temp: Math.round(json.current.temperature_2m), code: json.current.weather_code }));
-  }, [lat, lon]);
-
-  return (
-    <div className="flex items-center justify-between p-3 bg-zinc-900/30 rounded-xl border border-zinc-800/30 group hover:bg-zinc-800/50 hover:border-emerald-500/20 transition-all cursor-default">
-      <div className="flex items-center gap-3">
-        <div className="p-2 rounded-lg bg-zinc-900 border border-zinc-800/50 group-hover:bg-zinc-800 group-hover:border-emerald-500/20">
-          <CloudSun className="h-4 w-4 text-emerald-500/70" />
-        </div>
-        <span className="text-sm font-medium text-zinc-400 group-hover:text-zinc-200">{city}</span>
+const FlightLegRow = ({ leg }: { leg: FlightLeg }) => (
+  <div className="group relative pl-4 border-l-2 border-zinc-100 py-4 first:pt-0 last:pb-0 hover:border-zinc-300 transition-colors">
+    <div className="absolute -left-[9px] top-5 h-4 w-4 rounded-full bg-white border-2 border-zinc-200 group-hover:border-zinc-400 transition-colors" />
+    <div className="flex justify-between items-start mb-1">
+      <div className="flex items-center gap-2">
+        <span className="text-sm font-bold text-zinc-900">{leg.from}</span>
+        <ChevronRight className="h-3 w-3 text-zinc-400" />
+        <span className="text-sm font-bold text-zinc-900">{leg.to}</span>
       </div>
-      <span className="text-sm font-mono text-emerald-500/80 bg-emerald-500/5 px-2 py-0.5 rounded border border-emerald-500/10">
-        {data ? `${data.temp}°C` : '--°'}
-      </span>
+      <span className="text-[10px] font-mono font-bold text-zinc-400">{leg.flightNo}</span>
     </div>
-  );
-};
-
-const FlightLegRow = ({ leg, isLast }: { leg: FlightLeg, isLast: boolean }) => {
-  const [isOpen, setIsOpen] = useState(false);
-
-  return (
-    <div className="relative">
-      {!isLast && <div className="absolute left-[19px] top-10 bottom-0 w-[1px] bg-zinc-800/50" />}
-      
-      <motion.div 
-        onClick={() => setIsOpen(!isOpen)}
-        className={`relative z-10 flex items-start gap-4 p-4 rounded-xl cursor-pointer transition-all border ${isOpen ? 'bg-zinc-800/40 border-zinc-700/50' : 'bg-transparent border-transparent hover:bg-zinc-800/20'}`}
-      >
-        <div className={`mt-1.5 h-10 w-10 rounded-full border flex items-center justify-center bg-zinc-950 transition-all ${isOpen ? 'border-emerald-500/50 shadow-sm' : 'border-zinc-800/50'}`}>
-          <Plane className={`h-4 w-4 ${isOpen ? 'text-emerald-500/80' : 'text-zinc-600'}`} />
-        </div>
-
-        <div className="flex-1">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-1">
-            <div className="flex items-center gap-2">
-              <span className="text-lg font-bold text-zinc-200 tracking-tight">{leg.from}</span>
-              <ChevronRight className="h-4 w-4 text-zinc-700" />
-              <span className="text-lg font-bold text-zinc-200 tracking-tight">{leg.to}</span>
-              <span className="ml-2 px-1.5 py-0.5 rounded bg-zinc-800/50 text-[10px] font-mono text-zinc-500 border border-zinc-800/50">
-                {leg.flightNo}
-              </span>
-            </div>
-            <div className="flex items-center gap-3 text-sm">
-               <span className="text-emerald-500/70 font-bold tracking-tight">{leg.depTime} — {leg.arrTime}</span>
-               <ChevronDown className={`h-4 w-4 text-zinc-600 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
-            </div>
-          </div>
-          <div className="flex items-center gap-4 text-[11px] font-medium text-zinc-500">
-            <span className="flex items-center gap-1.5"><Calendar className="h-3 w-3" /> {leg.depDate}</span>
-            <span className="flex items-center gap-1.5"><MapPin className="h-3 w-3" /> {leg.terminal}, {leg.gate}</span>
-          </div>
-
-          <AnimatePresence>
-            {isOpen && (
-              <motion.div 
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: 'auto', opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                className="overflow-hidden"
-              >
-                <div className="mt-4 pt-4 border-t border-zinc-800/50 grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-[10px] text-zinc-600 uppercase font-bold tracking-widest">Airline</p>
-                    <p className="text-xs font-semibold text-zinc-400">{leg.airline}</p>
-                  </div>
-                  <div>
-                    <p className="text-[10px] text-zinc-600 uppercase font-bold tracking-widest">PNR / Ref</p>
-                    <p className="text-xs font-mono font-bold text-emerald-500/70">{leg.pnr}</p>
-                  </div>
-                  <div className="col-span-2 bg-zinc-950/50 p-3 rounded-lg border border-zinc-800/50 flex items-center justify-between">
-                     <span className="text-[11px] text-zinc-500">Status: <span className="text-emerald-500/60 font-bold ml-1 uppercase">{leg.status}</span></span>
-                     <button className="text-[10px] font-bold text-zinc-400 bg-zinc-800/50 px-3 py-1 rounded-md border border-zinc-700/50 hover:bg-zinc-700 transition-colors">MANAGE</button>
-                  </div>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-      </motion.div>
+    <div className="flex justify-between text-[11px] font-medium text-zinc-500">
+      <span>{leg.depTime} — {leg.arrTime}</span>
+      <span>{leg.depDate}</span>
     </div>
-  );
-};
+  </div>
+);
 
-// Map auto-fitting logic
-const ChangeView = ({ bounds }: { bounds: L.LatLngBoundsExpression }) => {
+const MapController = ({ bounds }: { bounds: L.LatLngBoundsExpression }) => {
   const map = useMap();
   useEffect(() => {
     map.fitBounds(bounds, { padding: [50, 50] });
@@ -190,60 +119,16 @@ const ChangeView = ({ bounds }: { bounds: L.LatLngBoundsExpression }) => {
   return null;
 };
 
-const SatelliteMap = () => {
-  const polyline: [number, number][] = CITIES.map(c => [c.lat, c.lon]);
-  const bounds = L.latLngBounds(polyline);
-
-  return (
-    <div className="h-[400px] w-full rounded-2xl overflow-hidden border border-zinc-800/50 shadow-inner relative group">
-      <MapContainer 
-        bounds={bounds} 
-        scrollWheelZoom={true} 
-        dragging={true}
-        zoomControl={true}
-        style={{ height: '100%', width: '100%', background: '#09090b' }}
-      >
-        <TileLayer
-          attribution='&copy; <a href="https://www.esri.com/">Esri</a>'
-          url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-        />
-        <Polyline 
-          positions={polyline} 
-          color="#10b981" 
-          weight={2} 
-          opacity={0.4} 
-          dashArray="8, 12"
-        />
-        {CITIES.map((city) => (
-          <Marker key={city.code} position={[city.lat, city.lon]}>
-            <Popup>
-              <div className="text-zinc-900 font-bold text-xs">{city.name} ({city.code})</div>
-            </Popup>
-          </Marker>
-        ))}
-        <ChangeView bounds={bounds} />
-      </MapContainer>
-      <div className="absolute top-4 left-4 z-[1000] bg-zinc-900/60 backdrop-blur-md border border-zinc-800/50 px-3 py-1.5 rounded-lg pointer-events-none transition-opacity group-hover:opacity-100 opacity-80">
-        <p className="text-[10px] font-bold text-emerald-500/80 uppercase tracking-widest flex items-center gap-2">
-          <Navigation2 className="h-3 w-3 fill-current" /> Interactive Route Map
-        </p>
-      </div>
-    </div>
-  );
-};
+// --- Main App ---
 
 export default function App() {
   const [checklist, setChecklist] = useState(() => {
-    const saved = localStorage.getItem('travel_checklist');
-    return saved ? JSON.parse(saved) : INITIAL_CHECKLIST;
+    const saved = localStorage.getItem('travel_checklist_v2');
+    return saved ? JSON.parse(saved) : CHECKLIST;
   });
 
-  const [time, setTime] = useState(new Date());
-
   useEffect(() => {
-    const timer = setInterval(() => setTime(new Date()), 1000);
-    localStorage.setItem('travel_checklist', JSON.stringify(checklist));
-    return () => clearInterval(timer);
+    localStorage.setItem('travel_checklist_v2', JSON.stringify(checklist));
   }, [checklist]);
 
   const toggleItem = (id: string) => {
@@ -252,207 +137,153 @@ export default function App() {
     ));
   };
 
-  const getIST = () => time.toLocaleTimeString('en-GB', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit', second: '2-digit' });
-  const getSGT = () => time.toLocaleTimeString('en-GB', { timeZone: 'Asia/Singapore', hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  const polyline: [number, number][] = CITIES.map(c => [c.lat, c.lon]);
+  const bounds = L.latLngBounds(polyline);
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-400 font-sans selection:bg-emerald-500/20 p-4 md:p-8">
-      {/* --- Smooth Header --- */}
-      <header className="max-w-6xl mx-auto mb-12 flex flex-col md:flex-row justify-between items-end gap-6 border-b border-zinc-900/50 pb-10">
-        <div className="space-y-1">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-emerald-500/10 rounded-xl border border-emerald-500/20">
-              <Navigation2 className="h-5 w-5 text-emerald-500/70 fill-current" />
+    <div className="flex h-screen w-screen bg-zinc-50 overflow-hidden font-sans text-zinc-900">
+      
+      {/* Left Sidebar (35%) */}
+      <aside className="w-[35%] h-full bg-white border-r border-zinc-200 overflow-y-auto custom-scrollbar flex flex-col">
+        <header className="p-8 border-b border-zinc-100">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="p-2 bg-zinc-900 rounded-lg">
+              <Plane className="h-5 w-5 text-white" />
             </div>
-            <h1 className="text-3xl font-bold text-zinc-100 tracking-tight uppercase italic">
-              Expedition<span className="text-emerald-500/50">.</span>SG
-            </h1>
+            <h1 className="text-xl font-black tracking-tight uppercase">Expedition.SG</h1>
           </div>
-          <p className="text-zinc-600 text-[10px] font-bold tracking-[0.3em] uppercase pl-1">Smooth Migration Dashboard</p>
-        </div>
+          <p className="text-[10px] font-bold text-zinc-400 tracking-[0.2em] uppercase">Operations Dashboard</p>
+        </header>
 
-        <div className="flex gap-4 md:gap-8 bg-zinc-900/30 p-4 rounded-2xl border border-zinc-800/50 shadow-sm">
-          <div className="text-right border-r border-zinc-800/50 pr-6">
-            <p className="text-[9px] font-bold text-zinc-600 uppercase tracking-widest mb-1">Ahmedabad / IST</p>
-            <p className="text-xl font-mono font-medium text-zinc-300 tracking-tight">{getIST()}</p>
-          </div>
-          <div className="text-right">
-            <p className="text-[9px] font-bold text-zinc-600 uppercase tracking-widest mb-1">Singapore / SGT</p>
-            <p className="text-xl font-mono font-medium text-emerald-500/60 tracking-tight">{getSGT()}</p>
-          </div>
-        </div>
-      </header>
-
-      <main className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8">
-        
-        {/* --- Main Itinerary (7 Cols) --- */}
-        <div className="lg:col-span-7 space-y-8">
+        <div className="p-8 space-y-10 flex-1">
+          {/* Flight Legs */}
           <section>
-            <div className="flex items-center justify-between mb-6 px-2">
-              <h2 className="text-[11px] font-bold text-zinc-500 uppercase tracking-widest flex items-center gap-2">
-                <Globe className="h-3.5 w-3.5 text-emerald-500/40" />
-                Mission Itinerary
-              </h2>
-              <span className="text-[9px] font-bold text-emerald-500/50 border border-emerald-500/10 px-2.5 py-1 rounded-full uppercase tracking-tighter">
-                PNR: 8H49TF
-              </span>
-            </div>
-
-            <Card className="p-2">
-              <div className="space-y-1">
-                <FlightLegRow leg={FLIGHT_DATA[0]} isLast={false} />
-                
-                {/* Mumbai Layover Highlight */}
-                <div className="relative pl-[52px] py-4 my-1">
-                  <div className="absolute left-[19px] top-0 bottom-0 w-[1px] bg-zinc-800/50" />
-                  <div className="absolute left-[14px] top-1/2 -translate-y-1/2 h-2.5 w-2.5 rounded-full bg-zinc-900 border border-zinc-700/50" />
-                  <div className="bg-amber-500/[0.02] border border-amber-500/10 p-3.5 rounded-xl flex items-center justify-between">
-                    <div>
-                      <p className="text-[10px] font-bold text-amber-500/60 uppercase tracking-widest flex items-center gap-2">
-                         <MapPin className="h-3 w-3" /> Stopover: Mumbai
-                      </p>
-                      <p className="text-xs font-semibold text-zinc-400 mt-0.5">Jun 17 — Jun 20</p>
-                    </div>
-                    <p className="text-[10px] font-mono text-zinc-600 italic">3 Nights</p>
-                  </div>
-                </div>
-
-                <FlightLegRow leg={FLIGHT_DATA[1]} isLast={false} />
-
-                {/* Transit Highlight */}
-                <div className="relative pl-[52px] py-3">
-                  <div className="absolute left-[19px] top-0 bottom-0 w-[1px] bg-zinc-800/50" />
-                  <div className="flex items-center gap-3 text-zinc-600 italic text-[11px] font-medium">
-                    <Clock className="h-3 w-3 opacity-50" /> 
-                    <span>3h 10m Transit in BLR</span>
-                  </div>
-                </div>
-
-                <FlightLegRow leg={FLIGHT_DATA[2]} isLast={true} />
-              </div>
-            </Card>
-          </section>
-
-          {/* Interactive Map Section */}
-          <section>
-            <h2 className="text-[11px] font-bold text-zinc-500 uppercase tracking-widest mb-6 px-2 flex items-center gap-2">
-              <Navigation2 className="h-3.5 w-3.5 text-emerald-500/40" />
-              Strategic Overlay
-            </h2>
-            <SatelliteMap />
-          </section>
-
-          {/* Logistics Section */}
-          <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card className="p-6 border-zinc-800/50 group">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-[11px] font-bold text-zinc-400 uppercase tracking-widest flex items-center gap-2">
-                  <Package className="h-3.5 w-3.5 text-emerald-500/40" />
-                  Preparation
-                </h3>
-                <span className="text-[10px] font-bold text-zinc-600">{checklist.filter((i:any)=>i.category==='Logistics' && i.checked).length}/4</span>
-              </div>
-              <div className="space-y-4">
-                {checklist.filter((item: any) => item.category === 'Logistics').map((item: any) => (
-                  <div 
-                    key={item.id} 
-                    onClick={() => toggleItem(item.id)}
-                    className="flex items-center gap-3 cursor-pointer group/item"
-                  >
-                    <div className={`h-4 w-4 rounded border transition-all flex items-center justify-center ${item.checked ? 'bg-emerald-500/20 border-emerald-500/30' : 'border-zinc-800 group-hover/item:border-zinc-700'}`}>
-                      {item.checked && <CheckCircle2 className="h-3 w-3 text-emerald-500/70" />}
-                    </div>
-                    <span className={`text-xs font-medium transition-all ${item.checked ? 'text-zinc-600 line-through' : 'text-zinc-300'}`}>
-                      {item.text}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </Card>
-
-            <Card className="p-6 bg-emerald-500/[0.01] border-dashed border-emerald-500/10">
-              <div className="flex flex-col h-full justify-between">
-                <div>
-                  <h3 className="text-[11px] font-bold text-zinc-400 uppercase tracking-widest mb-4 flex items-center gap-2">
-                    <AlertCircle className="h-3.5 w-3.5 text-emerald-500/40" />
-                    Priority Action
-                  </h3>
-                  <p className="text-xs font-bold text-zinc-200 leading-tight">Submit SG Arrival Card (SGAC)</p>
-                  <p className="text-[10px] text-zinc-600 mt-2 font-medium leading-relaxed">Mandatory requirement for entry into Singapore. Can be submitted up to 3 days prior to arrival.</p>
-                </div>
-                <a 
-                  href="https://eservices.ica.gov.sg/sgarrivalcard/" 
-                  target="_blank" 
-                  rel="noreferrer"
-                  className="mt-6 flex items-center justify-center gap-2 w-full py-2.5 bg-zinc-800/50 hover:bg-zinc-800 text-zinc-400 text-[10px] font-bold uppercase tracking-widest rounded-xl transition-colors border border-zinc-700/30"
-                >
-                  ICA Portal <ExternalLink className="h-3 w-3" />
-                </a>
-              </div>
-            </Card>
-          </section>
-        </div>
-
-        {/* --- Sidebar (5 Cols) --- */}
-        <div className="lg:col-span-5 space-y-8">
-          {/* Weather Section */}
-          <section>
-            <h2 className="text-[11px] font-bold text-zinc-500 uppercase tracking-widest mb-6 px-2 flex items-center gap-2">
-              <Thermometer className="h-3.5 w-3.5 text-emerald-500/40" />
-              Environment
-            </h2>
-            <Card className="p-4 space-y-2">
-              {CITIES.map(city => (
-                <WeatherBadge key={city.code} city={city.name} lat={city.lat} lon={city.lon} />
+            <SectionTitle icon={Globe}>Flight Itinerary</SectionTitle>
+            <SidebarCard className="space-y-1">
+              {FLIGHT_DATA.map((leg) => (
+                <FlightLegRow key={leg.id} leg={leg} />
               ))}
-            </Card>
+            </SidebarCard>
           </section>
 
-          {/* Medical Inventory */}
+          {/* Logistics */}
           <section>
-             <div className="flex items-center justify-between mb-6 px-2">
-                <h2 className="text-[11px] font-bold text-zinc-500 uppercase tracking-widest flex items-center gap-2">
-                  <Stethoscope className="h-3.5 w-3.5 text-emerald-500/40" />
-                  Medical Stockpile
-                </h2>
-                <div className="h-1 w-20 bg-zinc-900 rounded-full overflow-hidden">
-                   <motion.div 
-                    initial={{ width: 0 }}
-                    animate={{ width: `${(checklist.filter((i:any)=>i.category==='Medical' && i.checked).length / 10) * 100}%` }}
-                    className="h-full bg-emerald-500/30" 
-                   />
+            <SectionTitle icon={Package}>Logistics Checklist</SectionTitle>
+            <SidebarCard className="space-y-3">
+              {checklist.map((item: any) => (
+                <div 
+                  key={item.id} 
+                  onClick={() => toggleItem(item.id)}
+                  className="flex items-center gap-3 cursor-pointer group"
+                >
+                  <div className={`h-4 w-4 rounded border transition-all flex items-center justify-center ${item.checked ? 'bg-zinc-900 border-zinc-900' : 'border-zinc-200 group-hover:border-zinc-400'}`}>
+                    {item.checked && <CheckCircle2 className="h-3 w-3 text-white" />}
+                  </div>
+                  <span className={`text-xs font-medium transition-all ${item.checked ? 'text-zinc-400 line-through' : 'text-zinc-700'}`}>
+                    {item.text}
+                  </span>
                 </div>
-             </div>
-             <Card className="max-h-[500px] overflow-y-auto p-3">
-                <div className="space-y-1">
-                  {checklist.filter((item: any) => item.category === 'Medical').map((item: any) => (
-                    <div 
-                      key={item.id} 
-                      onClick={() => toggleItem(item.id)}
-                      className={`flex items-center justify-between p-2.5 rounded-xl transition-all border cursor-pointer group ${item.checked ? 'bg-zinc-900/40 border-zinc-800/30' : 'bg-transparent border-transparent hover:bg-zinc-800/10'}`}
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className={`h-3.5 w-3.5 rounded flex items-center justify-center transition-all ${item.checked ? 'text-emerald-500/60' : 'text-zinc-800 group-hover:text-zinc-700'}`}>
-                          {item.checked ? <CheckCircle2 className="h-3.5 w-3.5" /> : <Circle className="h-3.5 w-3.5" />}
-                        </div>
-                        <span className={`text-[11px] font-medium transition-all ${item.checked ? 'text-zinc-700 line-through' : 'text-zinc-400'}`}>
-                          {item.text}
-                        </span>
-                      </div>
-                      {item.checked && <span className="text-[8px] font-bold text-emerald-500/40 uppercase tracking-tighter">SECURE</span>}
-                    </div>
-                  ))}
-                </div>
-             </Card>
+              ))}
+            </SidebarCard>
           </section>
+
+          {/* Hotel & Arrival */}
+          <section className="grid grid-cols-1 gap-4">
+             <div>
+                <SectionTitle icon={Building2}>Arrival Details</SectionTitle>
+                <SidebarCard>
+                   <p className="text-[10px] font-bold text-zinc-400 uppercase mb-2">Primary Residence</p>
+                   <p className="text-xs font-bold text-zinc-900 mb-1">Standard Residency, SIN</p>
+                   <p className="text-[11px] text-zinc-500 leading-relaxed">Booking Ref: #SG-882910<br/>Check-in: Jun 21, 2026</p>
+                </SidebarCard>
+             </div>
+          </section>
+
+          {/* Loan Info */}
+          <section>
+            <SectionTitle icon={CreditCard}>Financial Overview</SectionTitle>
+            <SidebarCard className="bg-zinc-50 border-dashed border-zinc-300">
+               <div className="flex justify-between items-start mb-4">
+                  <div>
+                    <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">{LOAN_DATA.bank}</p>
+                    <p className="text-lg font-bold text-zinc-900">{LOAN_DATA.amount}</p>
+                  </div>
+                  <span className="text-[9px] font-bold bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full uppercase">{LOAN_DATA.status}</span>
+               </div>
+               <div className="space-y-2">
+                  <div className="flex justify-between text-[11px]">
+                     <span className="text-zinc-500">EMI Date</span>
+                     <span className="font-bold text-zinc-700">{LOAN_DATA.emiDate}</span>
+                  </div>
+                  <div className="flex justify-between text-[11px]">
+                     <span className="text-zinc-500">Tenure</span>
+                     <span className="font-bold text-zinc-700">{LOAN_DATA.repaymentPeriod}</span>
+                  </div>
+               </div>
+            </SidebarCard>
+          </section>
+        </div>
+
+        <footer className="p-8 border-t border-zinc-100 bg-zinc-50/50">
+           <div className="flex items-center gap-2 text-zinc-400">
+              <FileText className="h-3 w-3" />
+              <span className="text-[9px] font-bold uppercase tracking-widest">Restricted Access • Flight Ops v2.0</span>
+           </div>
+        </footer>
+      </aside>
+
+      {/* Right Map (65%) */}
+      <main className="w-[65%] h-full relative">
+        <MapContainer 
+          bounds={bounds} 
+          zoomControl={false}
+          className="h-full w-full grayscale-[0.2] contrast-[1.1]"
+        >
+          <TileLayer
+            url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+            attribution='&copy; Esri'
+          />
+          <Polyline 
+            positions={polyline} 
+            color="#09090b" 
+            weight={3} 
+            opacity={0.6} 
+            dashArray="10, 15"
+          />
+          {CITIES.map((city) => (
+            <Marker key={city.code} position={[city.lat, city.lon]}>
+              <Popup>
+                <div className="p-1 font-sans">
+                  <p className="font-black text-xs text-zinc-900 uppercase">{city.name}</p>
+                  <p className="text-[10px] text-zinc-500 font-bold">{city.code}</p>
+                </div>
+              </Popup>
+            </Marker>
+          ))}
+          <MapController bounds={bounds} />
+        </MapContainer>
+
+        {/* Map Overlays */}
+        <div className="absolute top-8 right-8 z-[1000] flex flex-col gap-4 items-end">
+           <div className="bg-white/80 backdrop-blur-md border border-zinc-200 p-4 rounded-xl shadow-premium max-w-xs">
+              <div className="flex items-center gap-2 mb-2">
+                 <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                 <span className="text-[10px] font-bold text-zinc-900 uppercase tracking-widest">Live Route Tracking</span>
+              </div>
+              <p className="text-[11px] text-zinc-500 font-medium leading-relaxed">
+                 Monitoring transit corridors between AMD, BOM, BLR, and SIN. Weather conditions: Optimal.
+              </p>
+           </div>
+        </div>
+
+        <div className="absolute bottom-8 right-8 z-[1000]">
+           <div className="bg-zinc-900 text-white px-4 py-2 rounded-lg shadow-xl flex items-center gap-3">
+              <Navigation2 className="h-4 w-4 fill-current" />
+              <span className="text-[11px] font-bold uppercase tracking-[0.2em]">Active Expedition</span>
+           </div>
         </div>
       </main>
 
-      <footer className="max-w-6xl mx-auto mt-20 pt-10 border-t border-zinc-900/50 text-center">
-        <p className="text-[9px] text-zinc-700 font-bold uppercase tracking-[0.5em]">
-          End of Line • Restricted Access • 2026 Flight Operations
-        </p>
-      </footer>
     </div>
   );
 }

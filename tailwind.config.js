@@ -4,16 +4,12 @@ export default {
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
-  darkMode: 'class',
   theme: {
     extend: {
       colors: {
-        border: "hsl(240 3.7% 15.9%)",
-        background: "hsl(240 10% 3.9%)",
-        foreground: "hsl(0 0% 98%)",
-        zinc: {
-          950: "#09090b",
-        }
+        border: "hsl(240 5.9% 90%)",
+        background: "hsl(0 0% 100%)",
+        foreground: "hsl(240 10% 3.9%)",
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
