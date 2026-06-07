@@ -15,6 +15,15 @@ export default {
         sans: ['Inter', 'system-ui', 'sans-serif'],
         mono: ['JetBrains Mono', 'monospace'],
       },
+      animation: {
+        'shimmer': 'shimmer 3s infinite linear',
+      },
+      keyframes: {
+        shimmer: {
+          '0%': { transform: 'translateX(-100%) translateY(-100%) rotate(-45deg)' },
+          '100%': { transform: 'translateX(200%) translateY(200%) rotate(-45deg)' },
+        }
+      }
     },
   },
   plugins: [],
