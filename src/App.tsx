@@ -277,21 +277,14 @@ const ForexWidget = () => {
   const [val, setVal] = useState('1000');
   const [base, setBase] = useState<Currency>('INR');
   const [rates, setRates] = useState<Record<string, number>>({});
-  const [loading, setLoading] = useState(true);
-  const [lastUpdate, setLastUpdate] = useState<string>('');
-
-  const currencies: { code: Currency; symbol: string; label: string }[] = [
-    { code: 'INR', symbol: '₹', label: 'Rupee' },
-    { code: 'SGD', symbol: 'S$', label: 'Singapore' },
-    { code: 'AED', symbol: 'د.إ', label: 'Dubai' },
-    { code: 'USD', symbol: '$', label: 'US Dollar' }
-  ];
-
+  const [loading, setLoading] = useState(false);
+  const [lastUpdate, setLastUpdate] = useState('');
+  
   useEffect(() => {
     const fetchRates = async () => {
       setLoading(true);
       try {
-        const res = await fetch(\`https://open.er-api.com/v6/latest/\${base}\`);
+        const res = await fetch(`https://open.er-api.com/v6/latest/${base}`);
         const data = await res.json();
         if (data.rates) {
           setRates(data.rates);
@@ -306,10 +299,12 @@ const ForexWidget = () => {
     fetchRates();
   }, [base]);
 
-  const convert = (amount: number, target: string) => {
-    if (!rates[target]) return 0;
-    return amount * rates[target];
-  };
+  const currencies: { code: Currency; symbol: string; label: string }[] = [
+    { code: 'INR', symbol: '₹', label: 'Rupee' },
+    { code: 'SGD', symbol: 'S$', label: 'Singapore' },
+    { code: 'AED', symbol: 'د.إ', label: 'Dubai' },
+    { code: 'USD', symbol: '$', label: 'US Dollar' }
+  ];
 
   return (
     <div className="space-y-6">
@@ -326,12 +321,7 @@ const ForexWidget = () => {
       </div>
 
       <div className="relative">
-        <div className="flex justify-between items-end mb-2.5 ml-1">
-          <label className="block text-[9px] font-bold text-zinc-400 uppercase tracking-widest">Input Amount</label>
-          {lastUpdate && !loading && (
-             <span className="text-[8px] text-zinc-300 font-bold uppercase tracking-widest">Updated {lastUpdate}</span>
-          )}
-        </div>
+        <label className="block text-[9px] font-bold text-zinc-400 uppercase tracking-widest mb-2.5 ml-1">Input Amount</label>
         <div className="relative">
           <input 
             type="number" 
@@ -345,7 +335,7 @@ const ForexWidget = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-3 min-h-[180px]">
+      <div className="grid grid-cols-1 gap-3">
         {currencies.filter(c => c.code !== base).map((c) => (
           <motion.div 
             layout
@@ -354,19 +344,22 @@ const ForexWidget = () => {
           >
             <div>
               <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest mb-0.5">{c.label} ({c.code})</p>
-              <div className="flex items-center gap-1.5">
-                <span className="text-xl font-medium text-zinc-900 tabular-nums font-mono tracking-tighter">
-                  {loading ? '...' : convert(Number(val), c.code).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}
-                </span>
-                <span className="text-[10px] font-bold text-zinc-300 uppercase font-mono">{c.code}</span>
-              </div>
+              <p className="text-xl font-medium text-zinc-900 tabular-nums font-mono tracking-tighter">
+                {c.symbol} {loading ? '...' : (Number(val) * (rates[c.code] || 0)).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+              </p>
             </div>
-            <div className="h-10 w-10 rounded-full bg-blue-50/50 flex items-center justify-center">
-               <RefreshCw className={`h-4 w-4 text-blue-500/40 ${loading ? 'animate-spin' : ''}`} />
+            <div className="h-10 w-10 rounded-full bg-blue-50 flex items-center justify-center">
+              <RefreshCw className={`h-4 w-4 text-blue-500 ${loading ? 'animate-spin' : 'opacity-30'}`} />
             </div>
           </motion.div>
         ))}
       </div>
+      
+      {lastUpdate && (
+        <p className="text-[8px] text-center text-zinc-400 font-bold uppercase tracking-widest">
+          Last Sync: {lastUpdate}
+        </p>
+      )}
     </div>
   );
 };
