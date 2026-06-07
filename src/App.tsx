@@ -86,7 +86,7 @@ const INITIAL_CHECKLIST = [
 // --- Components ---
 
 const Card = ({ children, className = "" }: { children: React.ReactNode, className?: string }) => (
-  <div className={`bg-zinc-900 border border-zinc-800 rounded-2xl shadow-xl overflow-hidden ${className}`}>
+  <div className={`bg-zinc-900/50 border border-zinc-800/50 rounded-2xl shadow-lg overflow-hidden ${className}`}>
     {children}
   </div>
 );
@@ -101,14 +101,14 @@ const WeatherBadge = ({ city, lat, lon }: { city: string, lat: number, lon: numb
   }, [lat, lon]);
 
   return (
-    <div className="flex items-center justify-between p-3 bg-zinc-950/50 rounded-xl border border-zinc-800/50 group hover:border-emerald-500/30 transition-all cursor-default">
+    <div className="flex items-center justify-between p-3 bg-zinc-900/30 rounded-xl border border-zinc-800/30 group hover:bg-zinc-800/50 hover:border-emerald-500/20 transition-all cursor-default">
       <div className="flex items-center gap-3">
-        <div className="p-2 rounded-lg bg-zinc-900 border border-zinc-800 group-hover:bg-zinc-800">
-          <CloudSun className="h-4 w-4 text-emerald-400" />
+        <div className="p-2 rounded-lg bg-zinc-900 border border-zinc-800/50 group-hover:bg-zinc-800 group-hover:border-emerald-500/20">
+          <CloudSun className="h-4 w-4 text-emerald-500/70" />
         </div>
-        <span className="text-sm font-semibold text-zinc-100">{city}</span>
+        <span className="text-sm font-medium text-zinc-400 group-hover:text-zinc-200">{city}</span>
       </div>
-      <span className="text-sm font-mono text-emerald-400 bg-emerald-400/10 px-2 py-0.5 rounded border border-emerald-400/20">
+      <span className="text-sm font-mono text-emerald-500/80 bg-emerald-500/5 px-2 py-0.5 rounded border border-emerald-500/10">
         {data ? `${data.temp}°C` : '--°'}
       </span>
     </div>
@@ -120,32 +120,32 @@ const FlightLegRow = ({ leg, isLast }: { leg: FlightLeg, isLast: boolean }) => {
 
   return (
     <div className="relative">
-      {!isLast && <div className="absolute left-[19px] top-10 bottom-0 w-[2px] bg-zinc-800" />}
+      {!isLast && <div className="absolute left-[19px] top-10 bottom-0 w-[1px] bg-zinc-800/50" />}
       
       <motion.div 
         onClick={() => setIsOpen(!isOpen)}
-        className={`relative z-10 flex items-start gap-4 p-4 rounded-xl cursor-pointer transition-all border ${isOpen ? 'bg-zinc-800/50 border-zinc-700' : 'bg-transparent border-transparent hover:bg-zinc-800/30'}`}
+        className={`relative z-10 flex items-start gap-4 p-4 rounded-xl cursor-pointer transition-all border ${isOpen ? 'bg-zinc-800/40 border-zinc-700/50' : 'bg-transparent border-transparent hover:bg-zinc-800/20'}`}
       >
-        <div className={`mt-1.5 h-10 w-10 rounded-full border-2 flex items-center justify-center bg-zinc-950 transition-colors ${isOpen ? 'border-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.2)]' : 'border-zinc-800'}`}>
-          <Plane className={`h-5 w-5 ${isOpen ? 'text-emerald-400' : 'text-zinc-500'}`} />
+        <div className={`mt-1.5 h-10 w-10 rounded-full border flex items-center justify-center bg-zinc-950 transition-all ${isOpen ? 'border-emerald-500/50 shadow-sm' : 'border-zinc-800/50'}`}>
+          <Plane className={`h-4 w-4 ${isOpen ? 'text-emerald-500/80' : 'text-zinc-600'}`} />
         </div>
 
         <div className="flex-1">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-1">
             <div className="flex items-center gap-2">
-              <span className="text-xl font-bold text-zinc-100 tracking-tight">{leg.from}</span>
-              <ChevronRight className="h-4 w-4 text-zinc-600" />
-              <span className="text-xl font-bold text-zinc-100 tracking-tight">{leg.to}</span>
-              <span className="ml-2 px-2 py-0.5 rounded bg-zinc-800 text-[10px] font-mono text-zinc-400 border border-zinc-700">
+              <span className="text-lg font-bold text-zinc-200 tracking-tight">{leg.from}</span>
+              <ChevronRight className="h-4 w-4 text-zinc-700" />
+              <span className="text-lg font-bold text-zinc-200 tracking-tight">{leg.to}</span>
+              <span className="ml-2 px-1.5 py-0.5 rounded bg-zinc-800/50 text-[10px] font-mono text-zinc-500 border border-zinc-800/50">
                 {leg.flightNo}
               </span>
             </div>
             <div className="flex items-center gap-3 text-sm">
-               <span className="text-emerald-400 font-bold tracking-tighter">{leg.depTime} — {leg.arrTime}</span>
-               <ChevronDown className={`h-4 w-4 text-zinc-500 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+               <span className="text-emerald-500/70 font-bold tracking-tight">{leg.depTime} — {leg.arrTime}</span>
+               <ChevronDown className={`h-4 w-4 text-zinc-600 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
             </div>
           </div>
-          <div className="flex items-center gap-4 text-xs font-medium text-zinc-400">
+          <div className="flex items-center gap-4 text-[11px] font-medium text-zinc-500">
             <span className="flex items-center gap-1.5"><Calendar className="h-3 w-3" /> {leg.depDate}</span>
             <span className="flex items-center gap-1.5"><MapPin className="h-3 w-3" /> {leg.terminal}, {leg.gate}</span>
           </div>
@@ -158,18 +158,18 @@ const FlightLegRow = ({ leg, isLast }: { leg: FlightLeg, isLast: boolean }) => {
                 exit={{ height: 0, opacity: 0 }}
                 className="overflow-hidden"
               >
-                <div className="mt-4 pt-4 border-t border-zinc-700 grid grid-cols-2 gap-4">
+                <div className="mt-4 pt-4 border-t border-zinc-800/50 grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-[10px] text-zinc-500 uppercase font-bold tracking-widest">Airline</p>
-                    <p className="text-sm font-semibold text-zinc-200">{leg.airline}</p>
+                    <p className="text-[10px] text-zinc-600 uppercase font-bold tracking-widest">Airline</p>
+                    <p className="text-xs font-semibold text-zinc-400">{leg.airline}</p>
                   </div>
                   <div>
-                    <p className="text-[10px] text-zinc-500 uppercase font-bold tracking-widest">PNR / Ref</p>
-                    <p className="text-sm font-mono font-bold text-emerald-400">{leg.pnr}</p>
+                    <p className="text-[10px] text-zinc-600 uppercase font-bold tracking-widest">PNR / Ref</p>
+                    <p className="text-xs font-mono font-bold text-emerald-500/70">{leg.pnr}</p>
                   </div>
-                  <div className="col-span-2 bg-zinc-950 p-3 rounded-lg border border-zinc-800 flex items-center justify-between">
-                     <span className="text-xs text-zinc-400">Status: <span className="text-emerald-500 font-bold ml-1 uppercase">{leg.status}</span></span>
-                     <button className="text-[10px] font-bold text-zinc-100 bg-zinc-800 px-3 py-1 rounded-md border border-zinc-700 hover:bg-zinc-700">MANAGE SEATS</button>
+                  <div className="col-span-2 bg-zinc-950/50 p-3 rounded-lg border border-zinc-800/50 flex items-center justify-between">
+                     <span className="text-[11px] text-zinc-500">Status: <span className="text-emerald-500/60 font-bold ml-1 uppercase">{leg.status}</span></span>
+                     <button className="text-[10px] font-bold text-zinc-400 bg-zinc-800/50 px-3 py-1 rounded-md border border-zinc-700/50 hover:bg-zinc-700 transition-colors">MANAGE</button>
                   </div>
                 </div>
               </motion.div>
@@ -195,12 +195,13 @@ const SatelliteMap = () => {
   const bounds = L.latLngBounds(polyline);
 
   return (
-    <div className="h-[400px] w-full rounded-2xl overflow-hidden border border-zinc-800 shadow-2xl relative">
+    <div className="h-[400px] w-full rounded-2xl overflow-hidden border border-zinc-800/50 shadow-inner relative group">
       <MapContainer 
         bounds={bounds} 
-        scrollWheelZoom={false} 
+        scrollWheelZoom={true} 
+        dragging={true}
+        zoomControl={true}
         style={{ height: '100%', width: '100%', background: '#09090b' }}
-        zoomControl={false}
       >
         <TileLayer
           attribution='&copy; <a href="https://www.esri.com/">Esri</a>'
@@ -209,22 +210,22 @@ const SatelliteMap = () => {
         <Polyline 
           positions={polyline} 
           color="#10b981" 
-          weight={3} 
-          opacity={0.6} 
-          dashArray="10, 10"
+          weight={2} 
+          opacity={0.4} 
+          dashArray="8, 12"
         />
         {CITIES.map((city) => (
           <Marker key={city.code} position={[city.lat, city.lon]}>
             <Popup>
-              <div className="text-zinc-900 font-bold">{city.name} ({city.code})</div>
+              <div className="text-zinc-900 font-bold text-xs">{city.name} ({city.code})</div>
             </Popup>
           </Marker>
         ))}
         <ChangeView bounds={bounds} />
       </MapContainer>
-      <div className="absolute top-4 left-4 z-[1000] bg-zinc-900/80 backdrop-blur-md border border-zinc-800 px-3 py-1.5 rounded-lg">
-        <p className="text-[10px] font-black text-emerald-400 uppercase tracking-widest flex items-center gap-2">
-          <Navigation2 className="h-3 w-3 fill-current" /> Live Route Tracking
+      <div className="absolute top-4 left-4 z-[1000] bg-zinc-900/60 backdrop-blur-md border border-zinc-800/50 px-3 py-1.5 rounded-lg pointer-events-none transition-opacity group-hover:opacity-100 opacity-80">
+        <p className="text-[10px] font-bold text-emerald-500/80 uppercase tracking-widest flex items-center gap-2">
+          <Navigation2 className="h-3 w-3 fill-current" /> Interactive Route Map
         </p>
       </div>
     </div>
@@ -255,29 +256,29 @@ export default function App() {
   const getSGT = () => time.toLocaleTimeString('en-GB', { timeZone: 'Asia/Singapore', hour: '2-digit', minute: '2-digit', second: '2-digit' });
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-300 font-sans selection:bg-emerald-500/30 p-4 md:p-8">
-      {/* --- High End Header --- */}
-      <header className="max-w-6xl mx-auto mb-12 flex flex-col md:flex-row justify-between items-end gap-6 border-b border-zinc-800 pb-10">
+    <div className="min-h-screen bg-zinc-950 text-zinc-400 font-sans selection:bg-emerald-500/20 p-4 md:p-8">
+      {/* --- Smooth Header --- */}
+      <header className="max-w-6xl mx-auto mb-12 flex flex-col md:flex-row justify-between items-end gap-6 border-b border-zinc-900/50 pb-10">
         <div className="space-y-1">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-emerald-500 rounded-xl shadow-[0_0_20px_rgba(16,185,129,0.3)]">
-              <Navigation2 className="h-6 w-6 text-white fill-current" />
+            <div className="p-2 bg-emerald-500/10 rounded-xl border border-emerald-500/20">
+              <Navigation2 className="h-5 w-5 text-emerald-500/70 fill-current" />
             </div>
-            <h1 className="text-4xl font-black text-zinc-100 tracking-tighter uppercase italic">
-              Expedition<span className="text-emerald-500">.</span>SG
+            <h1 className="text-3xl font-bold text-zinc-100 tracking-tight uppercase italic">
+              Expedition<span className="text-emerald-500/50">.</span>SG
             </h1>
           </div>
-          <p className="text-zinc-500 text-xs font-bold tracking-[0.3em] uppercase pl-1">Elite Migration Dashboard</p>
+          <p className="text-zinc-600 text-[10px] font-bold tracking-[0.3em] uppercase pl-1">Smooth Migration Dashboard</p>
         </div>
 
-        <div className="flex gap-4 md:gap-8 bg-zinc-900 p-4 rounded-2xl border border-zinc-800 shadow-2xl">
-          <div className="text-right border-r border-zinc-800 pr-6">
-            <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1">Ahmedabad / IST</p>
-            <p className="text-2xl font-mono font-bold text-zinc-100 tracking-tighter">{getIST()}</p>
+        <div className="flex gap-4 md:gap-8 bg-zinc-900/30 p-4 rounded-2xl border border-zinc-800/50 shadow-sm">
+          <div className="text-right border-r border-zinc-800/50 pr-6">
+            <p className="text-[9px] font-bold text-zinc-600 uppercase tracking-widest mb-1">Ahmedabad / IST</p>
+            <p className="text-xl font-mono font-medium text-zinc-300 tracking-tight">{getIST()}</p>
           </div>
           <div className="text-right">
-            <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1">Singapore / SGT</p>
-            <p className="text-2xl font-mono font-bold text-emerald-400 tracking-tighter">{getSGT()}</p>
+            <p className="text-[9px] font-bold text-zinc-600 uppercase tracking-widest mb-1">Singapore / SGT</p>
+            <p className="text-xl font-mono font-medium text-emerald-500/60 tracking-tight">{getSGT()}</p>
           </div>
         </div>
       </header>
@@ -288,45 +289,42 @@ export default function App() {
         <div className="lg:col-span-7 space-y-8">
           <section>
             <div className="flex items-center justify-between mb-6 px-2">
-              <h2 className="text-sm font-black text-zinc-100 uppercase tracking-widest flex items-center gap-2">
-                <Globe className="h-4 w-4 text-emerald-500" />
+              <h2 className="text-[11px] font-bold text-zinc-500 uppercase tracking-widest flex items-center gap-2">
+                <Globe className="h-3.5 w-3.5 text-emerald-500/40" />
                 Mission Itinerary
               </h2>
-              <span className="text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-3 py-1 rounded-full uppercase tracking-tighter">
+              <span className="text-[9px] font-bold text-emerald-500/50 border border-emerald-500/10 px-2.5 py-1 rounded-full uppercase tracking-tighter">
                 PNR: 8H49TF
               </span>
             </div>
 
-            <Card className="p-2 bg-zinc-900/50 backdrop-blur-sm">
-              <div className="space-y-2">
+            <Card className="p-2">
+              <div className="space-y-1">
                 <FlightLegRow leg={FLIGHT_DATA[0]} isLast={false} />
                 
                 {/* Mumbai Layover Highlight */}
-                <div className="relative pl-[52px] py-6 my-2">
-                  <div className="absolute left-[19px] top-0 bottom-0 w-[2px] bg-zinc-800" />
-                  <div className="absolute left-[12px] top-1/2 -translate-y-1/2 h-4 w-4 rounded-full bg-zinc-900 border-2 border-zinc-700" />
-                  <div className="bg-amber-500/5 border border-amber-500/20 p-4 rounded-xl flex items-center justify-between">
+                <div className="relative pl-[52px] py-4 my-1">
+                  <div className="absolute left-[19px] top-0 bottom-0 w-[1px] bg-zinc-800/50" />
+                  <div className="absolute left-[14px] top-1/2 -translate-y-1/2 h-2.5 w-2.5 rounded-full bg-zinc-900 border border-zinc-700/50" />
+                  <div className="bg-amber-500/[0.02] border border-amber-500/10 p-3.5 rounded-xl flex items-center justify-between">
                     <div>
-                      <p className="text-xs font-bold text-amber-500 uppercase tracking-widest flex items-center gap-2">
+                      <p className="text-[10px] font-bold text-amber-500/60 uppercase tracking-widest flex items-center gap-2">
                          <MapPin className="h-3 w-3" /> Stopover: Mumbai
                       </p>
-                      <p className="text-sm font-semibold text-zinc-300 mt-1">Jun 17 — Jun 20 (3 Nights)</p>
+                      <p className="text-xs font-semibold text-zinc-400 mt-0.5">Jun 17 — Jun 20</p>
                     </div>
-                    <div className="text-right">
-                       <p className="text-[10px] font-bold text-zinc-500 uppercase">Prep Period</p>
-                       <p className="text-xs font-mono text-amber-200/50 italic">Packing Finalization</p>
-                    </div>
+                    <p className="text-[10px] font-mono text-zinc-600 italic">3 Nights</p>
                   </div>
                 </div>
 
                 <FlightLegRow leg={FLIGHT_DATA[1]} isLast={false} />
 
                 {/* Transit Highlight */}
-                <div className="relative pl-[52px] py-4">
-                  <div className="absolute left-[19px] top-0 bottom-0 w-[2px] bg-zinc-800" />
-                  <div className="flex items-center gap-3 text-zinc-500 italic text-xs font-medium">
-                    <Clock className="h-3 w-3" /> 
-                    <span>3h 10m Transit in Bengaluru (BLR)</span>
+                <div className="relative pl-[52px] py-3">
+                  <div className="absolute left-[19px] top-0 bottom-0 w-[1px] bg-zinc-800/50" />
+                  <div className="flex items-center gap-3 text-zinc-600 italic text-[11px] font-medium">
+                    <Clock className="h-3 w-3 opacity-50" /> 
+                    <span>3h 10m Transit in BLR</span>
                   </div>
                 </div>
 
@@ -337,8 +335,8 @@ export default function App() {
 
           {/* Interactive Map Section */}
           <section>
-            <h2 className="text-sm font-black text-zinc-100 uppercase tracking-widest mb-6 px-2 flex items-center gap-2">
-              <Navigation2 className="h-4 w-4 text-emerald-500" />
+            <h2 className="text-[11px] font-bold text-zinc-500 uppercase tracking-widest mb-6 px-2 flex items-center gap-2">
+              <Navigation2 className="h-3.5 w-3.5 text-emerald-500/40" />
               Strategic Overlay
             </h2>
             <SatelliteMap />
@@ -346,13 +344,13 @@ export default function App() {
 
           {/* Logistics Section */}
           <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card className="p-6 border-zinc-800 hover:border-emerald-500/30 transition-all group">
+            <Card className="p-6 border-zinc-800/50 group">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xs font-black text-zinc-100 uppercase tracking-widest flex items-center gap-2">
-                  <Package className="h-4 w-4 text-emerald-500" />
+                <h3 className="text-[11px] font-bold text-zinc-400 uppercase tracking-widest flex items-center gap-2">
+                  <Package className="h-3.5 w-3.5 text-emerald-500/40" />
                   Preparation
                 </h3>
-                <span className="text-[10px] font-bold text-zinc-500">{checklist.filter((i:any)=>i.category==='Logistics' && i.checked).length}/4</span>
+                <span className="text-[10px] font-bold text-zinc-600">{checklist.filter((i:any)=>i.category==='Logistics' && i.checked).length}/4</span>
               </div>
               <div className="space-y-4">
                 {checklist.filter((item: any) => item.category === 'Logistics').map((item: any) => (
@@ -361,10 +359,10 @@ export default function App() {
                     onClick={() => toggleItem(item.id)}
                     className="flex items-center gap-3 cursor-pointer group/item"
                   >
-                    <div className={`h-5 w-5 rounded-lg border-2 transition-all flex items-center justify-center ${item.checked ? 'bg-emerald-500 border-emerald-500' : 'border-zinc-700 group-hover/item:border-zinc-500'}`}>
-                      {item.checked && <CheckCircle2 className="h-3.5 w-3.5 text-white" />}
+                    <div className={`h-4 w-4 rounded border transition-all flex items-center justify-center ${item.checked ? 'bg-emerald-500/20 border-emerald-500/30' : 'border-zinc-800 group-hover/item:border-zinc-700'}`}>
+                      {item.checked && <CheckCircle2 className="h-3 w-3 text-emerald-500/70" />}
                     </div>
-                    <span className={`text-sm font-semibold transition-all ${item.checked ? 'text-zinc-600 line-through' : 'text-zinc-200'}`}>
+                    <span className={`text-xs font-medium transition-all ${item.checked ? 'text-zinc-600 line-through' : 'text-zinc-300'}`}>
                       {item.text}
                     </span>
                   </div>
@@ -372,21 +370,21 @@ export default function App() {
               </div>
             </Card>
 
-            <Card className="p-6 border-dashed border-emerald-500/30 bg-emerald-500/[0.02]">
+            <Card className="p-6 bg-emerald-500/[0.01] border-dashed border-emerald-500/10">
               <div className="flex flex-col h-full justify-between">
                 <div>
-                  <h3 className="text-xs font-black text-zinc-100 uppercase tracking-widest mb-4 flex items-center gap-2">
-                    <AlertCircle className="h-4 w-4 text-emerald-400" />
+                  <h3 className="text-[11px] font-bold text-zinc-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                    <AlertCircle className="h-3.5 w-3.5 text-emerald-500/40" />
                     Priority Action
                   </h3>
-                  <p className="text-sm font-bold text-zinc-100 leading-tight">Submit SG Arrival Card (SGAC)</p>
-                  <p className="text-[10px] text-zinc-500 mt-2 font-medium">Mandatory requirement for entry into Singapore. Can be submitted up to 3 days prior to arrival.</p>
+                  <p className="text-xs font-bold text-zinc-200 leading-tight">Submit SG Arrival Card (SGAC)</p>
+                  <p className="text-[10px] text-zinc-600 mt-2 font-medium leading-relaxed">Mandatory requirement for entry into Singapore. Can be submitted up to 3 days prior to arrival.</p>
                 </div>
                 <a 
                   href="https://eservices.ica.gov.sg/sgarrivalcard/" 
                   target="_blank" 
                   rel="noreferrer"
-                  className="mt-6 flex items-center justify-center gap-2 w-full py-3 bg-zinc-100 text-zinc-950 text-xs font-black uppercase tracking-widest rounded-xl hover:bg-emerald-400 transition-colors"
+                  className="mt-6 flex items-center justify-center gap-2 w-full py-2.5 bg-zinc-800/50 hover:bg-zinc-800 text-zinc-400 text-[10px] font-bold uppercase tracking-widest rounded-xl transition-colors border border-zinc-700/30"
                 >
                   ICA Portal <ExternalLink className="h-3 w-3" />
                 </a>
@@ -399,11 +397,11 @@ export default function App() {
         <div className="lg:col-span-5 space-y-8">
           {/* Weather Section */}
           <section>
-            <h2 className="text-sm font-black text-zinc-100 uppercase tracking-widest mb-6 px-2 flex items-center gap-2">
-              <Thermometer className="h-4 w-4 text-emerald-500" />
+            <h2 className="text-[11px] font-bold text-zinc-500 uppercase tracking-widest mb-6 px-2 flex items-center gap-2">
+              <Thermometer className="h-3.5 w-3.5 text-emerald-500/40" />
               Environment
             </h2>
-            <Card className="p-4 space-y-3">
+            <Card className="p-4 space-y-2">
               {CITIES.map(city => (
                 <WeatherBadge key={city.code} city={city.name} lat={city.lat} lon={city.lon} />
               ))}
@@ -413,35 +411,35 @@ export default function App() {
           {/* Medical Inventory */}
           <section>
              <div className="flex items-center justify-between mb-6 px-2">
-                <h2 className="text-sm font-black text-zinc-100 uppercase tracking-widest flex items-center gap-2">
-                  <Stethoscope className="h-4 w-4 text-emerald-500" />
+                <h2 className="text-[11px] font-bold text-zinc-500 uppercase tracking-widest flex items-center gap-2">
+                  <Stethoscope className="h-3.5 w-3.5 text-emerald-500/40" />
                   Medical Stockpile
                 </h2>
-                <div className="h-1.5 w-24 bg-zinc-800 rounded-full overflow-hidden">
+                <div className="h-1 w-20 bg-zinc-900 rounded-full overflow-hidden">
                    <motion.div 
                     initial={{ width: 0 }}
                     animate={{ width: `${(checklist.filter((i:any)=>i.category==='Medical' && i.checked).length / 10) * 100}%` }}
-                    className="h-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]" 
+                    className="h-full bg-emerald-500/30" 
                    />
                 </div>
              </div>
-             <Card className="max-h-[500px] overflow-y-auto scrollbar-hide p-4">
+             <Card className="max-h-[500px] overflow-y-auto p-3">
                 <div className="space-y-1">
                   {checklist.filter((item: any) => item.category === 'Medical').map((item: any) => (
                     <div 
                       key={item.id} 
                       onClick={() => toggleItem(item.id)}
-                      className={`flex items-center justify-between p-3 rounded-xl transition-all border cursor-pointer group ${item.checked ? 'bg-zinc-950/50 border-zinc-800' : 'bg-transparent border-transparent hover:bg-zinc-800/30'}`}
+                      className={`flex items-center justify-between p-2.5 rounded-xl transition-all border cursor-pointer group ${item.checked ? 'bg-zinc-900/40 border-zinc-800/30' : 'bg-transparent border-transparent hover:bg-zinc-800/10'}`}
                     >
                       <div className="flex items-center gap-3">
-                        <div className={`h-4 w-4 rounded flex items-center justify-center transition-all ${item.checked ? 'text-emerald-500' : 'text-zinc-700 group-hover:text-zinc-500'}`}>
-                          {item.checked ? <CheckCircle2 className="h-4 w-4" /> : <Circle className="h-4 w-4" />}
+                        <div className={`h-3.5 w-3.5 rounded flex items-center justify-center transition-all ${item.checked ? 'text-emerald-500/60' : 'text-zinc-800 group-hover:text-zinc-700'}`}>
+                          {item.checked ? <CheckCircle2 className="h-3.5 w-3.5" /> : <Circle className="h-3.5 w-3.5" />}
                         </div>
-                        <span className={`text-xs font-bold transition-all ${item.checked ? 'text-zinc-600 line-through' : 'text-zinc-100'}`}>
+                        <span className={`text-[11px] font-medium transition-all ${item.checked ? 'text-zinc-700 line-through' : 'text-zinc-400'}`}>
                           {item.text}
                         </span>
                       </div>
-                      {item.checked && <span className="text-[9px] font-black text-emerald-500 uppercase tracking-tighter">Secure</span>}
+                      {item.checked && <span className="text-[8px] font-bold text-emerald-500/40 uppercase tracking-tighter">SECURE</span>}
                     </div>
                   ))}
                 </div>
@@ -450,8 +448,8 @@ export default function App() {
         </div>
       </main>
 
-      <footer className="max-w-6xl mx-auto mt-20 pt-10 border-t border-zinc-800 text-center">
-        <p className="text-[10px] text-zinc-600 font-bold uppercase tracking-[0.5em]">
+      <footer className="max-w-6xl mx-auto mt-20 pt-10 border-t border-zinc-900/50 text-center">
+        <p className="text-[9px] text-zinc-700 font-bold uppercase tracking-[0.5em]">
           End of Line • Restricted Access • 2026 Flight Operations
         </p>
       </footer>
