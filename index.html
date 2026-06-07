@@ -1,96 +1,12 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Premium Flight Dashboard | PNR: 8H49TF</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; background-color: #050505; color: #e5e7eb; }
-        #map { height: 500px; border-radius: 24px; }
-        .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); }
-        .accent-gradient { background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%); }
-        .leaflet-container { background: #050505 !important; }
-    </style>
-</head>
-<body class="p-6 md:p-12 min-h-screen bg-[#050505]">
-    <div class="max-w-7xl mx-auto space-y-8">
-        <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-            <div>
-                <div class="flex items-center gap-3 mb-2">
-                    <div class="w-10 h-10 accent-gradient rounded-xl flex items-center justify-center">
-                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
-                    </div>
-                    <h1 class="text-3xl font-bold tracking-tight text-white">SkyTrack Premium</h1>
-                </div>
-                <p class="text-gray-400">Personalized Flight Itinerary for Yudha</p>
-            </div>
-            <div class="glass px-8 py-4 rounded-3xl flex items-center gap-8">
-                <div>
-                    <p class="text-[10px] text-gray-500 uppercase tracking-[0.2em] font-bold mb-1">Booking Ref</p>
-                    <p class="text-xl font-mono font-bold text-blue-400">8H49TF</p>
-                </div>
-                <div class="h-10 w-[1px] bg-white/10"></div>
-                <div>
-                    <p class="text-[10px] text-gray-500 uppercase tracking-[0.2em] font-bold mb-1">Membership</p>
-                    <p class="text-xl font-bold text-white">Elite Platinum</p>
-                </div>
-            </div>
-        </header>
-
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            <div class="lg:col-span-4 space-y-6">
-                <div class="glass p-8 rounded-[2rem] relative overflow-hidden">
-                    <h2 class="text-sm font-bold text-gray-500 uppercase tracking-widest mb-8">Current Journey</h2>
-                    <div class="space-y-10 relative">
-                        <div class="absolute left-[11px] top-2 bottom-2 w-[2px] bg-gradient-to-b from-blue-500 via-purple-500 to-gray-800"></div>
-                        <div class="relative pl-10">
-                            <div class="absolute left-0 top-1 w-6 h-6 bg-blue-500 rounded-full border-4 border-[#050505] z-10"></div>
-                            <div class="flex justify-between items-start">
-                                <div><p class="text-2xl font-bold text-white">AMD</p></div>
-                                <span class="text-[10px] font-bold px-2 py-1 rounded bg-green-500/10 text-green-400 uppercase">Arrived</span>
-                            </div>
-                        </div>
-                        <div class="relative pl-10">
-                            <div class="absolute left-0 top-1 w-6 h-6 bg-purple-500 rounded-full border-4 border-[#050505] z-10"></div>
-                            <div class="flex justify-between items-start">
-                                <div><p class="text-2xl font-bold text-white">BOM</p></div>
-                                <span class="text-[10px] font-bold px-2 py-1 rounded bg-blue-500/10 text-blue-400 uppercase">Transit</span>
-                            </div>
-                        </div>
-                        <div class="relative pl-10">
-                            <div class="absolute left-0 top-1 w-6 h-6 bg-gray-700 rounded-full border-4 border-[#050505] z-10"></div>
-                            <div class="flex justify-between items-start">
-                                <div><p class="text-2xl font-bold text-white">SIN</p></div>
-                                <span class="text-[10px] font-bold px-2 py-1 rounded bg-white/5 text-gray-500 uppercase">Upcoming</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="lg:col-span-8">
-                <div class="glass p-4 rounded-[2.5rem] h-full min-h-[500px]">
-                    <div id="map" class="w-full h-full"></div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        const map = L.map('map', { zoomControl: false, attributionControl: false }).setView([15, 85], 4);
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(map);
-        const cities = [
-            { id: 'AMD', coords: [23.07, 72.63] },
-            { id: 'BOM', coords: [19.09, 72.85] },
-            { id: 'BLR', coords: [12.97, 77.59] },
-            { id: 'SIN', coords: [1.36, 103.99] }
-        ];
-        const path = L.polyline(cities.map(c => c.coords), { color: '#3b82f6', weight: 3, opacity: 0.5, dashArray: '10, 15' }).addTo(map);
-        cities.forEach(city => L.circleMarker(city.coords, { radius: 6, fillColor: '#3b82f6', fillOpacity: 1, color: '#fff', weight: 2 }).addTo(map));
-        map.fitBounds(path.getBounds(), { padding: [100, 100] });
-    </script>
-</body>
+<!doctype html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SkyTrack | Premium Flight Dashboard</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
 </html>
