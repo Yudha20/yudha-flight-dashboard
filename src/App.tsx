@@ -177,7 +177,7 @@ const GlassContainer = ({ children, className = "", delay = 0 }: { children: Rea
     initial={{ opacity: 0, y: 15 }}
     animate={{ opacity: 1, y: 0 }}
     transition={{ duration: 0.8, delay, ease: [0.16, 1, 0.3, 1] }}
-    className={`relative group overflow-hidden backdrop-blur-[32px] bg-white/40 border border-white/40 rounded-[28px] shadow-[0_24px_48px_-12px_rgba(0,0,0,0.08)] p-6 transition-all duration-700 hover:shadow-[0_40px_70px_-15px_rgba(0,0,0,0.12)] ${className}`}
+    className={`relative group overflow-hidden backdrop-blur-xl bg-white/40 border border-white/40 rounded-[28px] shadow-[0_24px_48px_-12px_rgba(0,0,0,0.08)] p-6 transition-all duration-700 hover:shadow-[0_40px_70px_-15px_rgba(0,0,0,0.12)] ${className}`}
   >
     <div className="absolute inset-0 rounded-[28px] border-[1px] border-black/[0.02] pointer-events-none" />
     <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-transparent pointer-events-none" />
@@ -386,8 +386,19 @@ export default function App() {
   const polyline: [number, number][] = CITIES.slice(0, 4).map(c => [c.lat, c.lon]);
   const bounds = useMemo(() => L.latLngBounds(polyline), [polyline]);
 
+  // iOS Viewport Height Fix
+  useEffect(() => {
+    const setVH = () => {
+      let vh = window.innerHeight * 0.01;
+      document.documentElement.style.setProperty('--vh', `${vh}px`);
+    };
+    setVH();
+    window.addEventListener('resize', setVH);
+    return () => window.removeEventListener('resize', setVH);
+  }, []);
+
   return (
-    <div className="flex h-screen w-screen bg-[#f8fafc] overflow-hidden font-sans text-zinc-900 selection:bg-blue-500 selection:text-white">
+    <div className="flex w-screen bg-[#f8fafc] overflow-hidden font-sans text-zinc-900 selection:bg-blue-500 selection:text-white" style={{ height: 'calc(var(--vh, 1vh) * 100)' }}>
       
       {/* Dynamic Background */}
       <div className="fixed inset-0 pointer-events-none">
@@ -400,7 +411,7 @@ export default function App() {
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
         onClick={() => setSidebarOpen(!sidebarOpen)}
-        className="fixed top-8 left-8 z-[100] h-12 w-12 bg-white/80 backdrop-blur-2xl border border-white shadow-xl rounded-2xl flex items-center justify-center transition-shadow hover:shadow-2xl"
+        className="fixed top-8 left-8 z-[100] h-12 w-12 bg-white/80 backdrop-blur-xl border border-white shadow-xl rounded-2xl flex items-center justify-center transition-shadow hover:shadow-2xl"
       >
         {sidebarOpen ? <X className="h-5 w-5 text-zinc-600" /> : <Menu className="h-5 w-5 text-zinc-600" />}
       </motion.button>
@@ -413,7 +424,7 @@ export default function App() {
             animate={{ x: 0, opacity: 1 }}
             exit={{ x: -450, opacity: 0 }}
             transition={layoutTransition}
-            className="w-[450px] h-full relative z-50 flex flex-col border-r border-zinc-200/50 bg-white/20 backdrop-blur-xl"
+            className="w-[450px] max-w-[85vw] h-full relative z-50 flex flex-col border-r border-zinc-200/50 bg-white/20 backdrop-blur-xl"
           >
             <div className="flex-1 overflow-y-auto custom-scrollbar p-8 pt-24 space-y-10">
               
@@ -551,11 +562,12 @@ export default function App() {
       </AnimatePresence>
 
       {/* Main Map Viewport */}
-      <main className={`h-full relative overflow-hidden transition-all duration-700 ease-[0.16, 1, 0.3, 1] ${sidebarOpen ? 'w-[calc(100%-450px)]' : 'w-full'}`}>
+      <main className={`h-full relative overflow-hidden transition-all duration-700 ease-[0.16, 1, 0.3, 1] ${sidebarOpen ? 'w-[calc(100%-450px)] hidden sm:block' : 'w-full block'}`}>
         <MapContainer 
           bounds={bounds} 
           zoomControl={false}
           className="h-full w-full"
+          tap={false}
         >
           {/* CartoDB Positron - Premium Elite Styling */}
           <TileLayer
@@ -606,11 +618,11 @@ export default function App() {
         </MapContainer>
 
         {/* Floating Core Status */}
-        <div className="absolute top-8 right-8 z-[100]">
+        <div className="absolute top-8 right-8 z-[100] hidden xs:block">
            <motion.div 
              initial={{ opacity: 0, x: 20 }}
              animate={{ opacity: 1, x: 0 }}
-             className="backdrop-blur-3xl bg-zinc-900/90 p-6 rounded-[28px] shadow-2xl max-w-xs border border-white/10"
+             className="backdrop-blur-xl bg-zinc-900/90 p-6 rounded-[28px] shadow-2xl max-w-xs border border-white/10"
            >
               <div className="flex items-center gap-3 mb-3">
                  <div className="h-2 w-2 rounded-full bg-blue-500 animate-pulse shadow-[0_0_12px_rgba(59,130,246,0.6)]" />
@@ -627,7 +639,7 @@ export default function App() {
            <motion.button 
              whileHover={{ scale: 1.05 }}
              whileTap={{ scale: 0.95 }}
-             className="h-14 w-14 bg-white/80 backdrop-blur-2xl text-zinc-900 rounded-2xl shadow-xl flex items-center justify-center border border-white"
+             className="h-14 w-14 bg-white/80 backdrop-blur-xl text-zinc-900 rounded-2xl shadow-xl flex items-center justify-center border border-white"
            >
               <Info className="h-6 w-6" />
            </motion.button>
@@ -657,6 +669,7 @@ export default function App() {
         .leaflet-popup-content-wrapper { 
           background: rgba(255, 255, 255, 0.8) !important;
           backdrop-filter: blur(24px) !important;
+          -webkit-backdrop-filter: blur(24px) !important;
           border-radius: 28px !important; 
           border: 1px solid white !important;
           box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.1) !important; 
@@ -673,6 +686,14 @@ export default function App() {
         .font-mono {
           font-family: 'JetBrains Mono', 'Fira Code', monospace;
           letter-spacing: -0.02em;
+        }
+
+        /* Fix for smaller mobile screens */
+        @media (max-width: 640px) {
+          aside {
+            width: 100% !important;
+            max-width: 100vw !important;
+          }
         }
       `}</style>
 
